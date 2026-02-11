@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Global Word Cloud – All Interactions</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+background: radial-gradient(circle at top left, #1e293b, #020617);
+color: #e5e7eb;
+font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+padding: 20px;
+}
+.container {
+max-width: 1200px;
+margin: auto;
+background: rgba(15,23,42,0.94);
+border-radius: 20px;
+padding: 24px 28px;
+box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+border: 1px solid rgba(148,163,184,0.4);
+backdrop-filter: blur(14px);
+}
+h1 {
+margin-bottom: 6px;
+font-size: 1.9rem;
+}
+.subtitle {
+color: #94a3b8;
+margin-bottom: 20px;
+font-size: .9rem;
+}
+.search {
+display: flex;
+gap: 10px;
+margin-bottom: 20px;
+}
+.search input {
+flex: 1;
+padding: 10px 12px;
+border-radius: 999px;
+background: #020617;
+border: 1px solid #334155;
+color: #fff;
+}
+.search input:focus {
+outline: none;
+border-color: #60a5fa;
+box-shadow: 0 0 0 1px #3b82f6;
+}
+.search button {
+padding: 10px 18px;
+border-radius: 999px;
+border: none;
+cursor: pointer;
+background: linear-gradient(135deg, #2563eb, #22c55e);
+color: white;
+font-weight: 600;
+transition: 0.2s;
+}
+.search button:hover {
+transform: translateY(-1px);
+filter: brightness(1.1);
+box-shadow: 0 10px 20px rgba(37,99,235,0.5);
+}
+#wordCloud {
+margin-top: 16px;
+text-align: center;
+min-height: 420px;
+}
+.word {
+display: inline-block;
+margin: 6px 8px;
+cursor: pointer;
+transition: .12s;
+}
+.word:hover {
+transform: scale(1.15);
+filter: brightness(1.3);
+text-shadow: 0 0 14px rgba(59,130,246,0.9);
+}
+.active {
+background: #22c55e;
+color: #022c22 !important;
+padding: 2px 9px;
+border-radius: 12px;
+box-shadow: 0 0 10px rgba(34,197,94,0.7);
+}
+.panel {
+padding: 14px;
+margin-top: 20px;
+background: rgba(15,23,42,0.94);
+border-radius: 14px;
+border: 1px solid #334155;
+}
+table {
+width: 100%;
+margin-top: 6px;
+border-spacing: 0 4px;
+font-size: .82rem;
+}
+td {
+padding: 6px;
+}
+.idCell {
+font-family: monospace;
+color: #cbd5e1;
+}
+.countCell {
+text-align: right;
+font-family: monospace;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+<h1>Global Word Cloud</h1>
+<div class="subtitle">
+One cloud built from ALL interactions combined. Bigger words = used more often.
+</div>
+
+<div class="search">
+<input id="searchBox" type="text" placeholder="Search a word...">
+<button onclick="searchWord()">Search</button>
+</div>
+
+<div id="wordCloud">Loading...</div>
+
+<div id="results" class="panel" style="display:none;"></div>
+</div>
+
+<script>
+const ENDPOINT = "https://698cc16821a248a273628479.mockapi.io/api/storage/interactions";
+
+let interactions = []; // { id, transcript }
+let globalFreq = {}; // word → total count
+let perInteractionFreq = {}; // word → { interactionId → count }
+
+const STOPWORDS = new Set([
+"the","and","or","a","an","of","to","in","it","is","for","on","that","this","with",
+"you","i","we","they","he","she","be","are","was","were","at","by","as","from",
+"about","so","if","but","not","just","can","could","should","would","will","your",
+"our","their","them","me","my","us","do","did","done","have","has","had","there",
+"then","than","when","what","which","who","how","why","up","down","out","in","all"
+]);
+
+function cleanWords(text) {
+const words = text.toLowerCase().match(/\b[\p{L}\p{N}']+\b/gu) || [];
+return words.filter(w => !STOPWORDS.has(w));
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(ENDPOINT);
+    if (!res.ok) throw new Error(`HTTP ${res.status} from endpoint`);
+
+    const data = await res.json();
+
+    interactions = data.map(item => {
+      return {
+        id: item.interactionId || item.id,
+        transcript: (item.transcriptText || "").trim()
+      };
+    });
+
+    buildFrequencies();
+    buildWordCloud();
+  } catch (err) {
+    const cloud = document.getElementById("wordCloud");
+    cloud.innerHTML = `Error loading data: ${err.message}`;
+    console.error(err);
+  }
+}
+
+function buildFrequencies() {
+globalFreq = {};
+perInteractionFreq = {};
+
+interactions.forEach(call => {
+const words = cleanWords(call.transcript);
+
+words.forEach(w => {
+globalFreq[w] = (globalFreq[w] || 0) + 1;
+
+if (!perInteractionFreq[w]) perInteractionFreq[w] = {};
+perInteractionFreq[w][call.id] = (perInteractionFreq[w][call.id] || 0) + 1;
+});
+});
+}
+
+function buildWordCloud(selected=null) {
+const cloud = document.getElementById("wordCloud");
+cloud.innerHTML = "";
+
+const words = Object.entries(globalFreq).sort((a,b)=>b[1]-a[1]).slice(0,200);
+
+const max = words[0]?.[1] || 1;
+const min = words[words.length-1]?.[1] || 1;
+
+words.forEach(([word,count])=>{
+const span = document.createElement("span");
+span.textContent = word;
+span.className = "word";
+
+const denom = (max - min) || 1;
+const ratio = (count - min) / denom;
+const size = 14 + ratio * 28;
+const hue = 160 - ratio * 80;
+
+span.style.fontSize = `${size}px`;
+span.style.color = `hsl(${hue},90%,80%)`;
+
+if (word === selected) span.classList.add("active");
+
+span.onclick = ()=>showWord(word);
+cloud.appendChild(span);
+});
+}
+
+function showWord(word) {
+buildWordCloud(word);
+
+const panel = document.getElementById("results");
+panel.style.display = "block";
+
+const total = globalFreq[word] || 0;
+if (!total) {
+  panel.innerHTML = `<h2>No matches for: <span style="color:#22c55e">${word}</span></h2>`;
+  return;
+}
+
+let html = `
+<h2>Word: <span style="color:#22c55e">${word}</span> — ${total} total uses</h2>
+<table>
+<tr><td><strong>Interaction ID</strong></td><td class="countCell"><strong>Count</strong></td></tr>
+`;
+
+const rows = Object.entries(perInteractionFreq[word] || {})
+.sort((a,b)=>b[1]-a[1])
+.map(([id,count]) => `
+<tr>
+<td class="idCell">${id}</td>
+<td class="countCell">${count}</td>
+</tr>
+`).join("");
+
+html += rows + "</table>";
+panel.innerHTML = html;
+}
+
+function searchWord() {
+const w = document.getElementById("searchBox").value.trim().toLowerCase();
+if (!w) return;
+showWord(w);
+}
+
+loadData();
+</script>
+
+</body>
+</html>
+
