@@ -147,8 +147,28 @@ const STOPWORDS = new Set([
 ]);
 
 function cleanWords(text) {
-const words = text.toLowerCase().match(/\b[\p{L}\p{N}']+\b/gu) || [];
-return words.filter(w => !STOPWORDS.has(w));
+  // remove timestamps like 00:12 or 01:02:33
+  text = text.replace(/\b\d{1,2}:\d{2}(:\d{2})?\b/g, " ");
+
+  const words = text.toLowerCase().match(/\b[\p{L}\p{N}']+\b/gu) || [];
+
+  return words.filter(w => {
+    if (STOPWORDS.has(w)) return false;
+
+    // remove pure numbers
+    if (/^\d+$/.test(w)) return false;
+
+    // remove anything containing digits (phone numbers, IDs)
+    if (/\d/.test(w)) return false;
+
+    // remove very short tokens
+    if (w.length < 3) return false;
+
+    // remove long hex-like strings (UUID fragments)
+    if (/^[0-9a-f]{6,}$/.test(w)) return false;
+
+    return true;
+  });
 }
 
 async function loadData() {
