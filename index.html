@@ -129,12 +129,26 @@ One cloud built from ALL interactions combined. Bigger words = used more often.
 <div id="wordCloud">Loading...</div>
 
 <div id="results" class="panel" style="display:none;"></div>
+
+<div class="panel" style="margin-top:16px;">
+  <h2 style="margin:0 0 10px 0;">Transcript Viewer</h2>
+
+  <div class="search" style="margin-bottom:10px;">
+    <select id="interactionSelect" style="flex:1; padding:10px 12px; border-radius:999px; background:#020617; border:1px solid #334155; color:#fff;">
+      <option value="">Select an interaction...</option>
+    </select>
+    <button onclick="showSelectedTranscript()">View</button>
+  </div>
+
+  <pre id="transcriptBox" style="white-space:pre-wrap; background:#020617; border:1px solid #334155; border-radius:14px; padding:12px; min-height:140px; color:#e5e7eb; margin:0;"></pre>
+</div>
+
 </div>
 
 <script>
 const ENDPOINT = "https://698cc16821a248a273628479.mockapi.io/api/storage/interactions";
 
-let interactions = []; // { id, transcript }
+let interactions = []; // { id, transcript, createdAt }
 let globalFreq = {}; // word → total count
 let perInteractionFreq = {}; // word → { interactionId → count }
 
@@ -171,114 +185,31 @@ function cleanWords(text) {
   });
 }
 
-async function loadData() {
-  try {
-    const res = await fetch(ENDPOINT);
-    if (!res.ok) throw new Error(`HTTP ${res.status} from endpoint`);
+function populateInteractionDropdown() {
+  const sel = document.getElementById("interactionSelect");
+  if (!sel) return;
 
-    const data = await res.json();
+  sel.innerHTML = `<option value="">Select an interaction...</option>`;
 
-    interactions = data.map(item => {
-      return {
-        id: item.interactionId || item.id,
-        transcript: (item.transcriptText || "").trim()
-      };
-    });
+  // newest first if createdAt exists
+  const sorted = [...interactions].sort((a, b) => {
+    const da = Date.parse(a.createdAt || "") || 0;
+    const db = Date.parse(b.createdAt || "") || 0;
+    return db - da;
+  });
 
-    buildFrequencies();
-    buildWordCloud();
-  } catch (err) {
-    const cloud = document.getElementById("wordCloud");
-    cloud.innerHTML = `Error loading data: ${err.message}`;
-    console.error(err);
-  }
+  sorted.forEach(i => {
+    const opt = document.createElement("option");
+    opt.value = i.id;
+    opt.textContent = i.id;
+    sel.appendChild(opt);
+  });
 }
 
-function buildFrequencies() {
-globalFreq = {};
-perInteractionFreq = {};
+function showSelectedTranscript() {
+  const sel = document.getElementById("interactionSelect");
+  const box = document.getElementById("transcriptBox");
+  if (!sel || !box) return;
 
-interactions.forEach(call => {
-const words = cleanWords(call.transcript);
 
-words.forEach(w => {
-globalFreq[w] = (globalFreq[w] || 0) + 1;
-
-if (!perInteractionFreq[w]) perInteractionFreq[w] = {};
-perInteractionFreq[w][call.id] = (perInteractionFreq[w][call.id] || 0) + 1;
-});
-});
-}
-
-function buildWordCloud(selected=null) {
-const cloud = document.getElementById("wordCloud");
-cloud.innerHTML = "";
-
-const words = Object.entries(globalFreq).sort((a,b)=>b[1]-a[1]).slice(0,200);
-
-const max = words[0]?.[1] || 1;
-const min = words[words.length-1]?.[1] || 1;
-
-words.forEach(([word,count])=>{
-const span = document.createElement("span");
-span.textContent = word;
-span.className = "word";
-
-const denom = (max - min) || 1;
-const ratio = (count - min) / denom;
-const size = 14 + ratio * 28;
-const hue = 160 - ratio * 80;
-
-span.style.fontSize = `${size}px`;
-span.style.color = `hsl(${hue},90%,80%)`;
-
-if (word === selected) span.classList.add("active");
-
-span.onclick = ()=>showWord(word);
-cloud.appendChild(span);
-});
-}
-
-function showWord(word) {
-buildWordCloud(word);
-
-const panel = document.getElementById("results");
-panel.style.display = "block";
-
-const total = globalFreq[word] || 0;
-if (!total) {
-  panel.innerHTML = `<h2>No matches for: <span style="color:#22c55e">${word}</span></h2>`;
-  return;
-}
-
-let html = `
-<h2>Word: <span style="color:#22c55e">${word}</span> — ${total} total uses</h2>
-<table>
-<tr><td><strong>Interaction ID</strong></td><td class="countCell"><strong>Count</strong></td></tr>
-`;
-
-const rows = Object.entries(perInteractionFreq[word] || {})
-.sort((a,b)=>b[1]-a[1])
-.map(([id,count]) => `
-<tr>
-<td class="idCell">${id}</td>
-<td class="countCell">${count}</td>
-</tr>
-`).join("");
-
-html += rows + "</table>";
-panel.innerHTML = html;
-}
-
-function searchWord() {
-const w = document.getElementById("searchBox").value.trim().toLowerCase();
-if (!w) return;
-showWord(w);
-}
-
-loadData();
-</script>
-
-</body>
-</html>
-
+::contentReference[oaicite:0]{index=0}
