@@ -2,196 +2,220 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Global Word Cloud – All Interactions</title>
+<title>Transcript UI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 body {
-background: radial-gradient(circle at top left, #1e293b, #020617);
-color: #e5e7eb;
-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-padding: 20px;
+  background: radial-gradient(circle at top left, #1e293b, #020617);
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding: 20px;
 }
 .container {
-max-width: 1200px;
-margin: auto;
-background: rgba(15,23,42,0.94);
-border-radius: 20px;
-padding: 24px 28px;
-box-shadow: 0 30px 80px rgba(0,0,0,0.7);
-border: 1px solid rgba(148,163,184,0.4);
-backdrop-filter: blur(14px);
+  max-width: 1200px;
+  margin: auto;
+  background: rgba(15,23,42,0.94);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+  border: 1px solid rgba(148,163,184,0.4);
+  backdrop-filter: blur(14px);
 }
 h1 {
-margin-bottom: 6px;
-font-size: 1.9rem;
+  margin-bottom: 6px;
+  font-size: 1.9rem;
 }
 .subtitle {
-color: #94a3b8;
-margin-bottom: 20px;
-font-size: .9rem;
+  color: #94a3b8;
+  margin-bottom: 20px;
+  font-size: .9rem;
 }
 .search {
-display: flex;
-gap: 10px;
-margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
 }
-.search input {
-flex: 1;
-padding: 10px 12px;
-border-radius: 999px;
-background: #020617;
-border: 1px solid #334155;
-color: #fff;
+.search input, .search select {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: #020617;
+  border: 1px solid #334155;
+  color: #fff;
 }
-.search input:focus {
-outline: none;
-border-color: #60a5fa;
-box-shadow: 0 0 0 1px #3b82f6;
+.search input:focus, .search select:focus {
+  outline: none;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 1px #3b82f6;
 }
 .search button {
-padding: 10px 18px;
-border-radius: 999px;
-border: none;
-cursor: pointer;
-background: linear-gradient(135deg, #2563eb, #22c55e);
-color: white;
-font-weight: 600;
-transition: 0.2s;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2563eb, #22c55e);
+  color: white;
+  font-weight: 600;
+  transition: 0.2s;
 }
 .search button:hover {
-transform: translateY(-1px);
-filter: brightness(1.1);
-box-shadow: 0 10px 20px rgba(37,99,235,0.5);
+  transform: translateY(-1px);
+  filter: brightness(1.1);
+  box-shadow: 0 10px 20px rgba(37,99,235,0.5);
 }
 #wordCloud {
-margin-top: 16px;
-text-align: center;
-min-height: 420px;
+  margin-top: 16px;
+  text-align: center;
+  min-height: 260px;
 }
 .word {
-display: inline-block;
-margin: 6px 8px;
-cursor: pointer;
-transition: .12s;
+  display: inline-block;
+  margin: 6px 8px;
+  cursor: pointer;
+  transition: .12s;
 }
 .word:hover {
-transform: scale(1.15);
-filter: brightness(1.3);
-text-shadow: 0 0 14px rgba(59,130,246,0.9);
+  transform: scale(1.15);
+  filter: brightness(1.3);
+  text-shadow: 0 0 14px rgba(59,130,246,0.9);
 }
 .active {
-background: #22c55e;
-color: #022c22 !important;
-padding: 2px 9px;
-border-radius: 12px;
-box-shadow: 0 0 10px rgba(34,197,94,0.7);
+  background: #22c55e;
+  color: #022c22 !important;
+  padding: 2px 9px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(34,197,94,0.7);
 }
 .panel {
-padding: 14px;
-margin-top: 20px;
-background: rgba(15,23,42,0.94);
-border-radius: 14px;
-border: 1px solid #334155;
+  padding: 14px;
+  margin-top: 20px;
+  background: rgba(15,23,42,0.94);
+  border-radius: 14px;
+  border: 1px solid #334155;
 }
 table {
-width: 100%;
-margin-top: 6px;
-border-spacing: 0 4px;
-font-size: .82rem;
+  width: 100%;
+  margin-top: 6px;
+  border-spacing: 0 4px;
+  font-size: .82rem;
 }
 td {
-padding: 6px;
+  padding: 6px;
 }
 .idCell {
-font-family: monospace;
-color: #cbd5e1;
+  font-family: monospace;
+  color: #cbd5e1;
 }
 .countCell {
-text-align: right;
-font-family: monospace;
+  text-align: right;
+  font-family: monospace;
+}
+#transcriptBox {
+  white-space: pre-wrap;
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 180px;
+  color: #e5e7eb;
+  margin: 0;
+}
+mark {
+  background: rgba(34,197,94,0.35);
+  color: #e5e7eb;
+  padding: 0 2px;
+  border-radius: 4px;
+}
+.smallNote {
+  color: #94a3b8;
+  font-size: .85rem;
+  margin-top: 8px;
 }
 </style>
 </head>
 
 <body>
 <div class="container">
-<h1>Global Word Cloud</h1>
-<div class="subtitle">
-One cloud built from ALL interactions combined. Bigger words = used more often.
-</div>
-
-<div class="search">
-<input id="searchBox" type="text" placeholder="Search a word...">
-<button onclick="searchWord()">Search</button>
-</div>
-
-<div id="wordCloud">Loading...</div>
-
-<div id="results" class="panel" style="display:none;"></div>
-
-<div class="panel" style="margin-top:16px;">
-  <h2 style="margin:0 0 10px 0;">Transcript Viewer</h2>
-
-  <div class="search" style="margin-bottom:10px;">
-    <select id="interactionSelect" style="flex:1; padding:10px 12px; border-radius:999px; background:#020617; border:1px solid #334155; color:#fff;">
-      <option value="">Select an interaction...</option>
-    </select>
-    <button onclick="showSelectedTranscript()">View</button>
+  <h1>Transcript UI</h1>
+  <div class="subtitle">
+    Select a transcript to view it. The word cloud and search operate on the selected transcript.
   </div>
 
-  <pre id="transcriptBox" style="white-space:pre-wrap; background:#020617; border:1px solid #334155; border-radius:14px; padding:12px; min-height:140px; color:#e5e7eb; margin:0;"></pre>
-</div>
+  <div class="search" style="margin-bottom:10px;">
+    <input id="searchBox" type="text" placeholder="Search inside the selected transcript...">
+    <button onclick="searchInSelectedTranscript()">Search</button>
+  </div>
 
+  <div id="wordCloud">Loading...</div>
+
+  <div id="results" class="panel" style="display:none;"></div>
+
+  <div class="panel" style="margin-top:16px;">
+    <h2 style="margin:0 0 10px 0;">Transcript Viewer</h2>
+
+    <div class="search" style="margin-bottom:10px;">
+      <select id="interactionSelect">
+        <option value="">Select an interaction...</option>
+      </select>
+      <button onclick="showSelectedTranscript()">View</button>
+    </div>
+
+    <pre id="transcriptBox"></pre>
+    <div id="selectedMeta" class="smallNote"></div>
+  </div>
 </div>
 
 <script>
 const ENDPOINT = "https://698cc16821a248a273628479.mockapi.io/api/storage/interactions";
 
-let interactions = []; // { id, transcript, createdAt }
-let globalFreq = {}; // word → total count
-let perInteractionFreq = {}; // word → { interactionId → count }
+let interactions = []; // { id, createdAt, transcript, topic }
+let selectedInteractionId = null;
+
+let globalFreq = {}; // word → count within selected transcript
+let perInteractionFreq = {}; // word → { interactionId → count } (kept for the word click table)
 
 const STOPWORDS = new Set([
-"the","and","or","a","an","of","to","in","it","is","for","on","that","this","with",
-"you","i","we","they","he","she","be","are","was","were","at","by","as","from",
-"about","so","if","but","not","just","can","could","should","would","will","your",
-"our","their","them","me","my","us","do","did","done","have","has","had","there",
-"then","than","when","what","which","who","how","why","up","down","out","in","all"
+  "the","and","or","a","an","of","to","in","it","is","for","on","that","this","with",
+  "you","i","we","they","he","she","be","are","was","were","at","by","as","from",
+  "about","so","if","but","not","just","can","could","should","would","will","your",
+  "our","their","them","me","my","us","do","did","done","have","has","had","there",
+  "then","than","when","what","which","who","how","why","up","down","out","in","all"
 ]);
 
 function cleanWords(text) {
-  // remove timestamps like 00:12 or 01:02:33
-  text = text.replace(/\b\d{1,2}:\d{2}(:\d{2})?\b/g, " ");
-
+  text = (text || "").replace(/\b\d{1,2}:\d{2}(:\d{2})?\b/g, " ");
   const words = text.toLowerCase().match(/\b[\p{L}\p{N}']+\b/gu) || [];
 
   return words.filter(w => {
     if (STOPWORDS.has(w)) return false;
-
-    // remove pure numbers
     if (/^\d+$/.test(w)) return false;
-
-    // remove anything containing digits (phone numbers, IDs)
     if (/\d/.test(w)) return false;
-
-    // remove very short tokens
     if (w.length < 3) return false;
-
-    // remove long hex-like strings (UUID fragments)
     if (/^[0-9a-f]{6,}$/.test(w)) return false;
-
     return true;
   });
 }
 
+function escapeHtml(s) {
+  return (s || "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function formatDropdownLabel(item) {
+  const ts = item.createdAt ? new Date(item.createdAt).toLocaleString() : "";
+  const topic = item.topic ? ` | ${item.topic}` : "";
+  return `${item.id}${ts ? " | " + ts : ""}${topic}`;
+}
+
 function populateInteractionDropdown() {
   const sel = document.getElementById("interactionSelect");
-  if (!sel) return;
-
   sel.innerHTML = `<option value="">Select an interaction...</option>`;
 
-  // newest first if createdAt exists
   const sorted = [...interactions].sort((a, b) => {
     const da = Date.parse(a.createdAt || "") || 0;
     const db = Date.parse(b.createdAt || "") || 0;
@@ -201,15 +225,199 @@ function populateInteractionDropdown() {
   sorted.forEach(i => {
     const opt = document.createElement("option");
     opt.value = i.id;
-    opt.textContent = i.id;
+    opt.textContent = formatDropdownLabel(i);
     sel.appendChild(opt);
   });
+}
+
+function buildFrequenciesForSelected() {
+  globalFreq = {};
+  perInteractionFreq = {};
+
+  const item = interactions.find(x => x.id === selectedInteractionId);
+  const transcript = item?.transcript || "";
+  const words = cleanWords(transcript);
+
+  words.forEach(w => {
+    globalFreq[w] = (globalFreq[w] || 0) + 1;
+    if (!perInteractionFreq[w]) perInteractionFreq[w] = {};
+    perInteractionFreq[w][selectedInteractionId] = (perInteractionFreq[w][selectedInteractionId] || 0) + 1;
+  });
+}
+
+function buildWordCloud(selectedWord=null) {
+  const cloud = document.getElementById("wordCloud");
+  cloud.innerHTML = "";
+
+  if (!selectedInteractionId) {
+    cloud.innerHTML = "Select a transcript below to generate a word cloud.";
+    return;
+  }
+
+  const entries = Object.entries(globalFreq).sort((a,b)=>b[1]-a[1]).slice(0,120);
+  if (!entries.length) {
+    cloud.innerHTML = "No words found for this transcript.";
+    return;
+  }
+
+  const max = entries[0][1];
+  const min = entries[entries.length - 1][1];
+
+  entries.forEach(([word,count]) => {
+    const span = document.createElement("span");
+    span.textContent = word;
+    span.className = "word";
+
+    const denom = (max - min) || 1;
+    const ratio = (count - min) / denom;
+    const size = 14 + ratio * 28;
+    const hue = 160 - ratio * 80;
+
+    span.style.fontSize = `${size}px`;
+    span.style.color = `hsl(${hue},90%,80%)`;
+
+    if (word === selectedWord) span.classList.add("active");
+    span.onclick = () => showWord(word);
+
+    cloud.appendChild(span);
+  });
+}
+
+function showWord(word) {
+  buildWordCloud(word);
+
+  const panel = document.getElementById("results");
+  panel.style.display = "block";
+
+  const total = globalFreq[word] || 0;
+
+  let html = `
+    <h2>Word: <span style="color:#22c55e">${word}</span> | ${total} uses in selected transcript</h2>
+    <table>
+      <tr>
+        <td><strong>Interaction ID</strong></td>
+        <td class="countCell"><strong>Count</strong></td>
+      </tr>
+      <tr>
+        <td class="idCell">${selectedInteractionId}</td>
+        <td class="countCell">${total}</td>
+      </tr>
+    </table>
+  `;
+
+  panel.innerHTML = html;
+
+  // Also highlight occurrences in the transcript box if visible
+  highlightInTranscriptBox(word);
+}
+
+function highlightInTranscriptBox(query) {
+  const item = interactions.find(x => x.id === selectedInteractionId);
+  const raw = item?.transcript || "";
+  const box = document.getElementById("transcriptBox");
+  if (!box) return;
+
+  if (!query) {
+    box.innerHTML = escapeHtml(raw);
+    return;
+  }
+
+  const escaped = escapeHtml(raw);
+
+  // Simple, case insensitive highlight on HTML-escaped content
+  const safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(`(${safeQuery})`, "ig");
+  box.innerHTML = escaped.replace(re, "<mark>$1</mark>");
 }
 
 function showSelectedTranscript() {
   const sel = document.getElementById("interactionSelect");
   const box = document.getElementById("transcriptBox");
-  if (!sel || !box) return;
+  const meta = document.getElementById("selectedMeta");
 
+  const id = sel.value;
+  selectedInteractionId = id || null;
 
-::contentReference[oaicite:0]{index=0}
+  document.getElementById("results").style.display = "none";
+  document.getElementById("results").innerHTML = "";
+
+  if (!selectedInteractionId) {
+    box.textContent = "";
+    meta.textContent = "";
+    document.getElementById("wordCloud").textContent = "Select a transcript below to generate a word cloud.";
+    return;
+  }
+
+  const item = interactions.find(x => x.id === selectedInteractionId);
+
+  // Show raw transcript cleanly (not filtered)
+  box.innerHTML = escapeHtml(item?.transcript || "(No transcript text found)");
+
+  const ts = item?.createdAt ? new Date(item.createdAt).toLocaleString() : "Unknown time";
+  const topic = item?.topic ? ` | ${item.topic}` : "";
+  meta.textContent = `Selected: ${selectedInteractionId} | ${ts}${topic}`;
+
+  buildFrequenciesForSelected();
+  buildWordCloud();
+}
+
+function searchInSelectedTranscript() {
+  if (!selectedInteractionId) return;
+
+  const q = document.getElementById("searchBox").value.trim();
+  if (!q) {
+    highlightInTranscriptBox("");
+    document.getElementById("results").style.display = "none";
+    return;
+  }
+
+  highlightInTranscriptBox(q);
+
+  const panel = document.getElementById("results");
+  panel.style.display = "block";
+
+  // Count occurrences in raw transcript
+  const item = interactions.find(x => x.id === selectedInteractionId);
+  const raw = item?.transcript || "";
+  const safeQuery = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const re = new RegExp(safeQuery, "ig");
+  const matches = raw.match(re) || [];
+
+  panel.innerHTML = `
+    <h2>Search: <span style="color:#22c55e">${escapeHtml(q)}</span> | ${matches.length} matches in selected transcript</h2>
+    <div class="smallNote">Matches are highlighted in the transcript viewer.</div>
+  `;
+}
+
+async function loadData() {
+  try {
+    const res = await fetch(ENDPOINT);
+    if (!res.ok) throw new Error(`HTTP ${res.status} from endpoint`);
+
+    const data = await res.json();
+
+    interactions = data.map(item => {
+      return {
+        id: item.interactionId || item.id,
+        createdAt: item.createdAt || item.createTime || item.createTime || "",
+        topic: item.topic || "",
+        transcript: (item.transcriptText || item.transcript || "").trim()
+      };
+    });
+
+    populateInteractionDropdown();
+
+    // Default state
+    document.getElementById("wordCloud").textContent = "Select a transcript below to generate a word cloud.";
+  } catch (err) {
+    const cloud = document.getElementById("wordCloud");
+    cloud.innerHTML = `Error loading data: ${err.message}`;
+    console.error(err);
+  }
+}
+
+loadData();
+</script>
+
+</body>
+</html>
